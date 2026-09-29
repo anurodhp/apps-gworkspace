@@ -134,7 +134,7 @@
 
     if (type == NSFileTypeDirectory) {
       NSDirectoryEnumerator *enumerator = [fm enumeratorAtPath: base];
-      IMP nxtImp = [enumerator methodForSelector: @selector(nextObject)];  
+      id (*nxtImp)(id, SEL) = (id (*)(id, SEL))[enumerator methodForSelector: @selector(nextObject)];  
         
       while (1) {  
         CREATE_AUTORELEASE_POOL(arp1);  

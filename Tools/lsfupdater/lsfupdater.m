@@ -727,7 +727,7 @@ BOOL subPathOfPath(NSString *p1, NSString *p2);
   CREATE_AUTORELEASE_POOL(arp);
   NSMutableArray *founds = [NSMutableArray array];
   NSDirectoryEnumerator *enumerator = [fm enumeratorAtPath: dirpath];
-  IMP nxtImp = [enumerator methodForSelector: @selector(nextObject)];    
+  id (*nxtImp)(id, SEL) = (id (*)(id, SEL))[enumerator methodForSelector: @selector(nextObject)];    
 
   while (1) {
     CREATE_AUTORELEASE_POOL(arp1); 

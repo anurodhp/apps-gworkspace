@@ -83,7 +83,7 @@ typedef gridpoint *(*GridPointIMP)(id, SEL, NSPoint);
   NSRect dragRect;	
   SEL makePosSel;
   
-  IMP makePos;
+  void (*makePos)(id, SEL);
   SEL gridPointSel;
   GridPointIMP gridPoint;
   NSFileManager *fm;

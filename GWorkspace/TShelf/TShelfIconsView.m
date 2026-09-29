@@ -76,7 +76,7 @@
       gw = [GWorkspace gworkspace];
 				        
       makePosSel = @selector(makePositions);
-      makePos = (IMP)[self methodForSelector: makePosSel];
+      makePos = (void (*)(id, SEL))[self methodForSelector: makePosSel];
 
       gridPointSel = @selector(gridPointNearestToPoint:);
       gridPoint = (GridPointIMP)[self methodForSelector: gridPointSel];

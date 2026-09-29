@@ -27,7 +27,8 @@
 #define GROW_FACTOR 32
 
 static SEL pathCompsSel = NULL;
-static IMP pathCompsImp = NULL;
+typedef NSArray *(*pathCompsIMP)(id, SEL);
+static pathCompsIMP pathCompsImp = NULL;
 
 typedef int (*intIMP)(id, SEL, id);
 static SEL pathCompareSel = NULL;
@@ -131,7 +132,7 @@ pcomp *newTreeWithIdentifier(id identifier)
       pathCompsSel = @selector(pathComponents);
     }  
     if (pathCompsImp == NULL) {
-      pathCompsImp = [NSString instanceMethodForSelector: pathCompsSel];
+      pathCompsImp = (pathCompsIMP)[NSString instanceMethodForSelector: pathCompsSel];
     }
 
     if (pathCompareSel == NULL) {
