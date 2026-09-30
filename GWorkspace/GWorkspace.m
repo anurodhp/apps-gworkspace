@@ -82,6 +82,18 @@ static GWorkspace *gworkspace = nil;
 
 #define HISTORT_CACHE_MAX 20
 
+/* How many 0.1 s polls to make for a daemon (fswatcher, ddbd) that was
+ * just launched to register its name.  Upstream makes 40, which gives the
+ * new process about four seconds from exec to NSConnection registration.
+ * On a Raspberry Pi 3, and much more under QEMU, loading gnustep-base and
+ * initialising takes longer than that, so the poll gave up while the
+ * daemon was still starting and NSRunAlertPanel() put up a modal "unable
+ * to contact" panel -- during launch, before the File Viewer had drawn,
+ * so every other window stopped taking input.  The count is of polls, not
+ * wall-clock time, so a clock step (chronyd at boot) cannot cut it short.
+ */
+#define DAEMON_START_POLLS 300
+
 #ifndef TSHF_MAXF
   #define TSHF_MAXF 999
 #endif
@@ -1754,14 +1766,14 @@ static GWorkspace *gworkspace = nil;
       [startAppWin showWindowWithTitle: @"GWorkspace"
                                appName: @"fswatcher"
                              operation: NSLocalizedString(@"starting:", @"")
-                          maxProgValue: 40.0];
+                          maxProgValue: (double)DAEMON_START_POLLS];
     
       arguments = [NSMutableArray arrayWithCapacity:2];
       [arguments addObject:@"--daemon"];
       [arguments addObject:@"--auto"];  
       [NSTask launchedTaskWithLaunchPath: cmd arguments: arguments];
    
-      for (i = 1; i <= 40; i++) {
+      for (i = 1; i <= DAEMON_START_POLLS; i++) {
         [startAppWin updateProgressBy: 1.0];
 	      [[NSRunLoop currentRunLoop] runUntilDate:
 		                     [NSDate dateWithTimeIntervalSinceNow: 0.1]];
@@ -1770,7 +1782,7 @@ static GWorkspace *gworkspace = nil;
                                                                       host: @""];                  
         if (fswatcher)
 	{
-          [startAppWin updateProgressBy: 40.0 - (double)i];
+          [startAppWin updateProgressBy: (double)DAEMON_START_POLLS - (double)i];
           break;
         }
       }
@@ -1981,7 +1993,7 @@ static GWorkspace *gworkspace = nil;
 	  [startAppWin showWindowWithTitle: @"GWorkspace"
 				   appName: @"ddbd"
 				 operation: NSLocalizedString(@"starting:", @"")
-			      maxProgValue: 40.0];
+			      maxProgValue: (double)DAEMON_START_POLLS];
  
 	  arguments = [NSMutableArray arrayWithCapacity:2];
 	  [arguments addObject:@"--daemon"];
@@ -1989,7 +2001,7 @@ static GWorkspace *gworkspace = nil;
 	  [NSTask launchedTaskWithLaunchPath: cmd arguments: arguments];
 
    
-	  for (i = 1; i <= 40; i++)
+	  for (i = 1; i <= DAEMON_START_POLLS; i++)
 	    {
 	      [startAppWin updateProgressBy: 1.0];
 	      [[NSRunLoop currentRunLoop] runUntilDate:
@@ -1999,7 +2011,7 @@ static GWorkspace *gworkspace = nil;
 								       host: @""];                  
 	      if (ddbd)
 		{
-		  [startAppWin updateProgressBy: 40.0 - (double)i];
+		  [startAppWin updateProgressBy: (double)DAEMON_START_POLLS - (double)i];
 		  break;
 		}
 	    }

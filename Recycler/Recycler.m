@@ -34,6 +34,18 @@
 #import "FSNodeRep.h"
 #import "FSNFunctions.h"
 
+/* How many 0.1 s polls to make for a daemon (fswatcher, ddbd) that was
+ * just launched to register its name.  Upstream makes 40, which gives the
+ * new process about four seconds from exec to NSConnection registration.
+ * On a Raspberry Pi 3, and much more under QEMU, loading gnustep-base and
+ * initialising takes longer than that, so the poll gave up while the
+ * daemon was still starting and NSRunAlertPanel() put up a modal "unable
+ * to contact" panel -- during launch, before the File Viewer had drawn,
+ * so every other window stopped taking input.  The count is of polls, not
+ * wall-clock time, so a clock step (chronyd at boot) cannot cut it short.
+ */
+#define DAEMON_START_POLLS 300
+
 
 static Recycler *recycler = nil;
 
@@ -283,11 +295,11 @@ static Recycler *recycler = nil;
                 
       [startAppWin showWindowWithTitle: @"Recycler"
                                appName: @"fswatcher"
-                          maxProgValue: 40.0];
+                          maxProgValue: (double)DAEMON_START_POLLS];
     
       [NSTask launchedTaskWithLaunchPath: cmd arguments: nil];
    
-      for (i = 1; i <= 40; i++) {
+      for (i = 1; i <= DAEMON_START_POLLS; i++) {
         [startAppWin updateProgressBy: 1.0];
 	      [[NSRunLoop currentRunLoop] runUntilDate:
 		                     [NSDate dateWithTimeIntervalSinceNow: 0.1]];
@@ -295,7 +307,7 @@ static Recycler *recycler = nil;
         fswatcher = [NSConnection rootProxyForConnectionWithRegisteredName: @"fswatcher" 
                                                                       host: @""];                  
         if (fswatcher) {
-          [startAppWin updateProgressBy: 40.0 - i];
+          [startAppWin updateProgressBy: (double)DAEMON_START_POLLS - i];
           break;
         }
       }
